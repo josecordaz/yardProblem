@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Yard Problem</title>
+	<style type="text/css">
+		canvas {
+			border: 3px solid black;
+		}
+
+		div {
+			width:100%;
+			text-align:center;
+		}
+	</style>
+</head>
+<body>
+	<div>
+		<canvas id="myCanvas" width="675" height="675"></canvas>
+	</div>
+	<button onclick="showIndividual(idIndividual)">Show next</button>
+	<label>1</label>
+	<script type="text/javascript">
+		var c = document.getElementById("myCanvas");
+		var ctx = c.getContext("2d");
+		var unit = 15;
+		//c.style.width = (unit * 45)+"px";
+		//c.style.height = (unit * 45)+"px";
+		console.log("The size of canvas should be "+unit*45);
+
+		var dibujarCuadricula = function(){
+			// Horizontal lines
+			ctx.beginPath();
+			ctx.strokeStyle = 'blue';
+			for(var i=1; i<45; i++){
+				ctx.moveTo(i*unit,0);
+				ctx.lineTo(i*unit,unit*45);
+				ctx.stroke();	
+			}
+			// Vertical lines
+			for(var i=1; i<45; i++){
+				ctx.moveTo(0,i*unit);
+				ctx.lineTo(45*unit,i*unit);
+				ctx.stroke();	
+			}	
+		}
+		
+		var createRandomIndividual = function(){
+			// Points array
+			var points = [];
+
+			var tmpNum ;
+			// Getting random x numbers
+			for(var i=0; i<24; i++){
+				tmpNum = Math.floor((Math.random()*44)+1)*unit;
+				points[i] = [tmpNum,0];
+			}
+
+			// Getting random y numbers
+			for(var i=0; i<24; i++){
+				tmpNum = Math.floor((Math.random()*44)+1)*unit;
+				points[i][1] = tmpNum;
+			}
+
+			return points;
+		}
+
+		// Function to evaluate to the individual
+		var evaluateIndividual = function(pnts){
+			var inclinaciones = [];
+			var numOfLines = 0;
+
+			for (var i = 0; i < pnts.length; i++) {
+				inclinaciones[i] = [];
+				for (var e = 0 ; e < pnts.length; e++) {
+					if(i !== e){
+						inclinaciones[i][e] = (pnts[i][0]-pnts[e][0])/(pnts[i][1]-pnts[e][1]);
+					}
+				}	
+			}
+
+			for(var i = 0; i < inclinaciones.length; i++){
+				var tmp = inclinaciones[i].reduce((pv,cv)=>{
+					if(pv[cv]){
+						pv[cv]++;
+					} else {
+						pv[cv] = 1;
+					}
+					return pv;
+				},[]);
+
+				var keys = Object.keys(tmp);
+
+				keys.forEach(val=>{
+					if(tmp.val==3){
+						numOfLines++;
+					}
+				})
+			}
+
+			return numOfLines;
+		}
+			
+
+		// Drawing all points of the first generation
+		var idIndividual = 0;
+		var showIndividual = function(id){
+			document.getElementsByTagName("label")[0].innerHTML = id;
+			ctx.clearRect(0, 0, c.width, c.height);
+			dibujarCuadricula();
+			for(var i=0; i < 24; i++){
+				ctx.beginPath();
+				ctx.moveTo(poblacion[id][i][0],poblacion[id][i][1]);
+		      	ctx.arc(poblacion[id][i][0],poblacion[id][i][1], 4, 0,2*Math.PI, false);
+		      	ctx.fillStyle = 'green';
+		      	ctx.fill();
+		      	ctx.lineWidth = 0;
+		      	ctx.strokeStyle = 'green';
+		        ctx.stroke();
+			}
+			idIndividual++;
+			if(idIndividual==numOfIndividualPerGeneration){
+				idIndividual = 0;
+			}
+		}
+
+		// Iniciamos a los individuos de la primer generacion
+		var poblacion = [];
+		var numOfIndividualPerGeneration = 4;
+		for(var i = 0; i < numOfIndividualPerGeneration; i++){
+			poblacion [i] = createRandomIndividual();
+		}
+
+
+		// Evaluamos a los individuos
+		var mejorIndividuo = 0;
+		for(var i = 0; i < numOfIndividualPerGeneration; i++){
+			console.log(evaluateIndividual(poblacion[i]));
+		}
+
+		dibujarCuadricula();
+		showIndividual(idIndividual);
+
+		//console.log(points);
+	</script>
+</body>
+</html>
