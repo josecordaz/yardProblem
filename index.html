@@ -29,19 +29,45 @@
 
 		var dibujarCuadricula = function(){
 			// Horizontal lines
-			ctx.beginPath();
-			ctx.strokeStyle = 'blue';
+			
+			//ctx.strokeStyle = 'orange';
 			for(var i=1; i<45; i++){
+				ctx.beginPath();
+				if(i%5===0){
+					ctx.strokeStyle = 'orange';
+				} else {
+					ctx.strokeStyle = 'blue';
+				}
+
 				ctx.moveTo(i*unit,0);
 				ctx.lineTo(i*unit,unit*45);
 				ctx.stroke();	
 			}
 			// Vertical lines
 			for(var i=1; i<45; i++){
+				ctx.beginPath();
+				if(i%5===0){
+					ctx.strokeStyle = 'orange';
+				} else {
+					ctx.strokeStyle = 'blue';
+				}
+
 				ctx.moveTo(0,i*unit);
 				ctx.lineTo(45*unit,i*unit);
 				ctx.stroke();	
 			}	
+		}
+
+		var getRandomNumberWithNoRepetition = function(cantidad){
+			var res = [];
+			for(var i = 0; i< cantidad;i++){
+				var tmp = Math.floor(Math.random()*cantidad);
+				while(res.indexOf(tmp)!==-1){
+					tmp = Math.floor(Math.random()*cantidad);
+				}
+				res.push(tmp);
+			}
+			return res;
 		}
 		
 		var createRandomIndividual = function(){
@@ -51,15 +77,80 @@
 			var tmpNum ;
 			// Getting random x numbers
 			for(var i=0; i<24; i++){
-				tmpNum = Math.floor((Math.random()*44)+1)*unit;
+				tmpNum = Math.floor((Math.random()*44)+1);
 				points[i] = [tmpNum,0];
 			}
 
 			// Getting random y numbers
 			for(var i=0; i<24; i++){
-				tmpNum = Math.floor((Math.random()*44)+1)*unit;
+				
+				tmpNum = Math.floor((Math.random()*44)+1);
+				var exists;
+				do{
+					exists = false;
+					for(var e = 0; e < i; e++){
+						if(points[i].join("&")==[points[i][0],tmpNum].join("&")){
+							exists = true;
+						}
+					}
+				} while (exists)
+				
+
 				points[i][1] = tmpNum;
 			}
+
+			// Aqui se va a quitar los elementos que sean mayor a 4 en una misma linea
+			var inclinaciones = [];
+			var numOfLines = 0;
+
+			var entro = true;
+
+			while(entro){
+				entro = false;
+			
+				for (var i = 0; i < points.length; i++) {
+					inclinaciones[i] = [];
+					for (var e = i+1 ; e < points.length; e++) {
+						inclinaciones[i][e] = (points[i][0]-points[e][0])/(points[i][1]-points[e][1]);
+					}	
+				}
+				
+				for(var i = 0; i < inclinaciones.length; i++){
+					var tmp = inclinaciones[i].reduce((pv,cv,ci)=>{
+						if(pv[cv]){
+							pv[cv].push(ci);
+						} else {
+							pv[cv] = [ci];
+						}
+						return pv;
+					},{});
+
+					var keys = Object.keys(tmp);
+				
+					keys.forEach(val=>{
+						if(tmp[val].length>3){
+							// Reemplazamos esos numero con otro
+							for(var e=3;e<tmp[val].length;e++){
+								// Este es el indice a reemplazar tmp[val][e]
+								points[tmp[val][e]] = null;
+								// Generar un nuevo numero
+								var newX,newY;
+								do{
+									newX = Math.floor(Math.random()*44)+1;
+									newY = Math.floor(Math.random()*44)+1;
+									if(points.join(",").indexOf([newX,newY].join(","))!==-1){
+										this.entro = true;	
+									}
+								}while(points.join(",").indexOf([newX,newY].join(","))!==-1)
+								// Revisar que no existan duplicados
+								// Reemplazar el viejo por el nuevo numero
+								points[tmp[val][e]] = [newX,newY].slice(0);
+							}
+						}
+					});	
+				}
+			}
+
 
 			return points;
 		}
@@ -71,36 +162,35 @@
 
 			for (var i = 0; i < pnts.length; i++) {
 				inclinaciones[i] = [];
-				for (var e = 0 ; e < pnts.length; e++) {
-					if(i !== e){
-						inclinaciones[i][e] = (pnts[i][0]-pnts[e][0])/(pnts[i][1]-pnts[e][1]);
-					}
+				for (var e = i+1 ; e < pnts.length; e++) {
+					inclinaciones[i][e] = (pnts[i][0]-pnts[e][0])/(pnts[i][1]-pnts[e][1]);
 				}	
+				
 			}
 
+
 			for(var i = 0; i < inclinaciones.length; i++){
-				var tmp = inclinaciones[i].reduce((pv,cv)=>{
+				var tmp = inclinaciones[i].reduce((pv,cv,ci)=>{
 					if(pv[cv]){
 						pv[cv]++;
 					} else {
 						pv[cv] = 1;
 					}
 					return pv;
-				},[]);
+				},{});
 
 				var keys = Object.keys(tmp);
 
 				keys.forEach(val=>{
-					if(tmp.val==3){
+					if(tmp[val]==3){
 						numOfLines++;
 					}
 				})
 			}
-
+			
 			return numOfLines;
 		}
 			
-
 		// Drawing all points of the first generation
 		var idIndividual = 0;
 		var showIndividual = function(id){
@@ -109,8 +199,8 @@
 			dibujarCuadricula();
 			for(var i=0; i < 24; i++){
 				ctx.beginPath();
-				ctx.moveTo(poblacion[id][i][0],poblacion[id][i][1]);
-		      	ctx.arc(poblacion[id][i][0],poblacion[id][i][1], 4, 0,2*Math.PI, false);
+				ctx.moveTo(poblacion[id][i][0]*unit,45*unit-poblacion[id][i][1]*unit);
+		      	ctx.arc(poblacion[id][i][0]*unit,45*unit-poblacion[id][i][1]*unit, 4, 0,2*Math.PI, false);
 		      	ctx.fillStyle = 'green';
 		      	ctx.fill();
 		      	ctx.lineWidth = 0;
@@ -125,22 +215,160 @@
 
 		// Iniciamos a los individuos de la primer generacion
 		var poblacion = [];
-		var numOfIndividualPerGeneration = 4;
+		var numOfIndividualPerGeneration = 8;
 		for(var i = 0; i < numOfIndividualPerGeneration; i++){
 			poblacion [i] = createRandomIndividual();
 		}
 
+		var mejorEvaluacion = -1;	
+		var idMejorEvaluado = -1;
 
-		// Evaluamos a los individuos
-		var mejorIndividuo = 0;
-		for(var i = 0; i < numOfIndividualPerGeneration; i++){
-			console.log(evaluateIndividual(poblacion[i]));
-		}
+		do{
+			// Evaluamos a los individuos
+			var evaluaciones = [];
+			for(var i = 0; i < numOfIndividualPerGeneration; i++){
+				evaluaciones[i] = evaluateIndividual(poblacion[i]);
+				if(evaluaciones[i]>mejorEvaluacion){
+					mejorEvaluacion = evaluaciones[i];
+					idMejorEvaluado = i;
+					console.log("mejorEvaluacion => "+mejorEvaluacion);
+					console.log("ID mejorEval => "+idMejorEvaluado);
+				}
+			}
+
+			if(mejorEvaluacion>=3){
+				showIndividual(idMejorEvaluado);
+				//evaluateIndividual(poblacion[idMejorEvaluado]);
+				console.log(idMejorEvaluado)
+				document.getElementsByTagName("label")[0].innerHTML = idMejorEvaluado;
+				break;
+			}
+
+			// Seleccionamos a los competidores del torneo
+			var battleOrder = getRandomNumberWithNoRepetition(numOfIndividualPerGeneration);
+
+			// Ganadores
+			var winners = [];
+			for(var i = 0; i < battleOrder.length/2; i++){
+				winners[i] = evaluaciones[battleOrder[i*2]]>evaluaciones[battleOrder[i*2+1]]?battleOrder[i*2]:battleOrder[i*2+1];
+			}
+			
+			// Clonamos ganadores
+			var clonados = [];
+			for (var i = 0; i < winners.length; i++) {
+				clonados[i*2] = winners[i];
+				clonados[i*2+1] = winners[i];
+			}
+
+			// Seleccionamos parejas a cruzar
+			var ordenCruza = getRandomNumberWithNoRepetition(numOfIndividualPerGeneration);
+
+			// Se cruzan los individuos
+			for(var i = 0; i < numOfIndividualPerGeneration; i+=2){
+				var ordenPuntos =  getRandomNumberWithNoRepetition(24);
+				var juntos = [];
+				var tmp1 = [];
+				var tmp2 = [];
+
+				for(var e = 0; e < ordenPuntos.length; e++){
+					juntos.push(poblacion[ordenCruza[i]][ordenPuntos[e]]);
+					juntos.push(poblacion[ordenCruza[i+1]][ordenPuntos[e]]);
+					//juntos.push(poblacion[i][ordenPuntos[e]]);
+					//juntos.push(poblacion[i+1][ordenPuntos[e]]);
+				}
+
+				var juntos2 = juntos.slice(0);
+
+				while(tmp1.length !== 24){
+					var val = juntos2.pop();
+					var exists = false;
+
+					for(var e = 0; e < tmp1.length; e++){
+						if(val.join("&")===tmp1[e].join("&")){
+							exists = true;
+						}
+					}
+
+					if(!exists){
+						tmp1.push(val);
+					} else {
+						tmp2.push(val);
+					}
+				}
+
+				tmp2 = tmp2.concat(juntos2);
+				var respTmp2 = tmp2.slice(0);
+				var tmp2 = tmp2.slice(0);
+
+				var tttmp = function(){
+					for(var e=0; e<tmp2.length; e++){
+						var indTmp2 = tmp2.map(val=>{return val.join(",")}).indexOf(tmp2[e].join(","),e+1);
+						while(indTmp2>e){
+							var exists;
+							do{
+								var newX = Math.floor(Math.random()*44)+1;
+								var newY = Math.floor(Math.random()*44)+1;
+								exists = false;
+								for(var a = 0; a <= indTmp2; a++){
+									if(tmp2[a].join("&")===[newX,newY].join("&")){
+										exists = true;
+									}
+								}
+							}while(exists);
+							tmp2[indTmp2] = [newX,newY].slice(0);
+							indTmp2 = tmp2.map(val=>{return val.join(",")}).indexOf(tmp2[e].join(","),indTmp2+1);
+						}
+					}
+					//console.log(":)"+tmp2.length);
+				};
+				tttmp();
+
+				var kdkd = tmp2.reduce((pv,cv,ci,carr)=>{
+					if(pv[cv]){
+						pv[cv]++
+					} else {
+						pv[cv] = 1;
+					}
+					return pv;
+				},{});
+
+
+				var keysss = Object.keys(kdkd);
+
+				keysss.forEach(val=>{
+					if(kdkd[val]>1){
+						console.log("ERRRRRRRRRRRRRRRRRRRRRRRROOOOOOOOOOOOOOOOOOOOR");
+					}
+				});
+
+				poblacion[i] = tmp1.slice(0);
+				poblacion[i+1] = tmp2.slice(0);
+			}
+			//break;
+
+			// Mutamos un gen de cada individuo
+			for(var i = 0; i < poblacion.length; i++){
+				var idGentoMutate = Math.floor(Math.random()*24);
+				var exists = false;
+				var newX,newY;
+				do{
+					newX = Math.floor(Math.random()*44)+1;
+					newY = Math.floor(Math.random()*44)+1;
+					exists = false;
+					for(var e = 0; e < poblacion[i].length; e++){
+						if(poblacion[i][0]==[newX,newY]){
+							exist = true;
+						}
+					}
+				}while(exists);
+				poblacion[i][idGentoMutate] = [newX,newY];
+				//console.log(poblacion[i].length);
+			}
+		}while(mejorEvaluacion<3)
 
 		dibujarCuadricula();
-		showIndividual(idIndividual);
+		showIndividual(0);
 
-		//console.log(points);
 	</script>
 </body>
 </html>
