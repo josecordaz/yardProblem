@@ -58,6 +58,86 @@
 			}	
 		}
 
+		var getLinesPointsInd = function(pnts){
+			var res = [];
+			var inclinaciones = [];
+			for(var i = 0; i < pnts.length; i++){
+				inclinaciones[i] = [];
+				for(var e = 0; e < pnts.length; e++){
+					if(e !== i){
+						inclinaciones[i][e] = (pnts[i][0]-pnts[e][0])/(pnts[i][1]-pnts[e][1]);
+					}
+				}
+			}
+
+			for(var i = 0; i < inclinaciones.length; i++){
+				var pro = inclinaciones[i].reduce((pv,cv,ci)=>{
+					if(pv.cv){
+						pv.cv.push(ci);
+					} else {
+						pv.cv = [ci];
+					}
+					return pv;
+				});
+
+				var keys = Object.keys(pro);
+
+				keys.forEach(key=>{
+					if(pro[key].length==4){
+						if(res.indexOf(i)!==-1){
+							res.push(i);
+						}
+						pro[key].forEach(val=>{
+							if(res.indexOf(val)==-1){
+								res.push(val);
+							}
+						});
+					}
+				});
+			}
+
+			return res;
+		}
+
+		var cruzar = function(pnts1,pnts2){
+			var pre = [];
+			var ind1 = getLinesPointsInd(pnts1);
+			var ind2 = getLinesPointsInd(pnts2);
+
+			for(var i=0; i < ind1.length; i++){
+				pre.push(pnts1[i]);
+			}
+
+			for(var i=0; i < ind2.length; i++){
+				pre.push(pnts1[i]);
+			}			
+
+			var numRandom = 24 - pre.length;
+
+			var new1 = [];
+			for(var i = 0; i < numRandom; i++){
+				var x,y;
+				do{
+					x = Math.floor((Math.random()*44)+1);
+					y = Math.floor((Math.random()*44)+1);
+				}while(pre.map(val=>{return val.join(",")}).indexOf([x,y].join(","))!==-1);
+				new1.push[x,y];
+			}
+
+			var new2 = [];
+			for(var i = 0; i < numRandom; i++){
+				var x,y;
+				do{
+					x = Math.floor((Math.random()*44)+1);
+					y = Math.floor((Math.random()*44)+1);
+				}while(pre.map(val=>{return val.join(",")}).indexOf([x,y].join(","))!==-1);
+				new2.push[x,y];
+			}
+
+			pnts1 = pre.slice(0).concat(new1);
+			pnts2 = pre.slice(0).concat(new2);
+		}
+
 		var getRandomNumberWithNoRepetition = function(cantidad){
 			var res = [];
 			for(var i = 0; i< cantidad;i++){
@@ -111,7 +191,9 @@
 				for (var i = 0; i < points.length; i++) {
 					inclinaciones[i] = [];
 					for (var e = i+1 ; e < points.length; e++) {
-						inclinaciones[i][e] = (points[i][0]-points[e][0])/(points[i][1]-points[e][1]);
+						if(i!==e){
+							inclinaciones[i][e] = (points[i][0]-points[e][0])/(points[i][1]-points[e][1]);	
+						}
 					}	
 				}
 				
@@ -236,7 +318,7 @@
 				}
 			}
 
-			if(mejorEvaluacion>=3){
+			if(mejorEvaluacion>=10){
 				showIndividual(idMejorEvaluado);
 				//evaluateIndividual(poblacion[idMejorEvaluado]);
 				console.log(idMejorEvaluado)
@@ -265,84 +347,7 @@
 
 			// Se cruzan los individuos
 			for(var i = 0; i < numOfIndividualPerGeneration; i+=2){
-				var ordenPuntos =  getRandomNumberWithNoRepetition(24);
-				var juntos = [];
-				var tmp1 = [];
-				var tmp2 = [];
-
-				for(var e = 0; e < ordenPuntos.length; e++){
-					juntos.push(poblacion[ordenCruza[i]][ordenPuntos[e]]);
-					juntos.push(poblacion[ordenCruza[i+1]][ordenPuntos[e]]);
-					//juntos.push(poblacion[i][ordenPuntos[e]]);
-					//juntos.push(poblacion[i+1][ordenPuntos[e]]);
-				}
-
-				var juntos2 = juntos.slice(0);
-
-				while(tmp1.length !== 24){
-					var val = juntos2.pop();
-					var exists = false;
-
-					for(var e = 0; e < tmp1.length; e++){
-						if(val.join("&")===tmp1[e].join("&")){
-							exists = true;
-						}
-					}
-
-					if(!exists){
-						tmp1.push(val);
-					} else {
-						tmp2.push(val);
-					}
-				}
-
-				tmp2 = tmp2.concat(juntos2);
-				var respTmp2 = tmp2.slice(0);
-				var tmp2 = tmp2.slice(0);
-
-				var tttmp = function(){
-					for(var e=0; e<tmp2.length; e++){
-						var indTmp2 = tmp2.map(val=>{return val.join(",")}).indexOf(tmp2[e].join(","),e+1);
-						while(indTmp2>e){
-							var exists;
-							do{
-								var newX = Math.floor(Math.random()*44)+1;
-								var newY = Math.floor(Math.random()*44)+1;
-								exists = false;
-								for(var a = 0; a <= indTmp2; a++){
-									if(tmp2[a].join("&")===[newX,newY].join("&")){
-										exists = true;
-									}
-								}
-							}while(exists);
-							tmp2[indTmp2] = [newX,newY].slice(0);
-							indTmp2 = tmp2.map(val=>{return val.join(",")}).indexOf(tmp2[e].join(","),indTmp2+1);
-						}
-					}
-					//console.log(":)"+tmp2.length);
-				};
-				tttmp();
-
-				var kdkd = tmp2.reduce((pv,cv,ci,carr)=>{
-					if(pv[cv]){
-						pv[cv]++
-					} else {
-						pv[cv] = 1;
-					}
-					return pv;
-				},{});
-
-
-				var keysss = Object.keys(kdkd);
-
-				keysss.forEach(val=>{
-					if(kdkd[val]>1){
-						console.log("ERRRRRRRRRRRRRRRRRRRRRRRROOOOOOOOOOOOOOOOOOOOR");
-					}
-				});
-
-				poblacion[i] = tmp1.slice(0);
-				poblacion[i+1] = tmp2.slice(0);
+				cruzar(poblacion[ordenCruza[i]],poblacion[ordenCruza[i+1]]);
 			}
 			//break;
 
@@ -364,7 +369,7 @@
 				poblacion[i][idGentoMutate] = [newX,newY];
 				//console.log(poblacion[i].length);
 			}
-		}while(mejorEvaluacion<3)
+		}while(mejorEvaluacion<10)
 
 		dibujarCuadricula();
 		showIndividual(0);
