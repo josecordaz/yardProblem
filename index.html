@@ -58,6 +58,32 @@
 			}	
 		}
 
+		var isItInLine = function(x,y,pnts){
+
+			var inclinaciones = [];
+			for(var i = 0; i < pnts.length; i++){
+				inclinaciones[i] = [];
+				for(var e = 0; e < pnts.length; e++){
+					if(e !== i && pnts[i] && pnts[e]){
+						inclinaciones[i][e] = (pnts[i][0]-pnts[e][0])/(pnts[i][1]-pnts[e][1]);
+					}
+				}
+			}
+
+			var inLine = false;
+			for(var i = 0; i < inclinaciones.length; i++){
+				if(pnts[i]){
+					var pivote = (x-pnts[i][0])/(y-pnts[i][1]);
+					for(var e=0; e < inclinaciones[i].length; e++){
+						if(inclinaciones[i][e]==pivote){
+							inLine = true;
+						}
+					}
+				}
+			}
+			return inLine;
+		}
+
 		var getLinesPointsInd = function(pnts){
 			var res = [];
 			var inclinaciones = [];
@@ -72,13 +98,13 @@
 
 			for(var i = 0; i < inclinaciones.length; i++){
 				var pro = inclinaciones[i].reduce((pv,cv,ci)=>{
-					if(pv.cv){
-						pv.cv.push(ci);
+					if(pv[cv]){
+						pv[cv].push(ci);
 					} else {
-						pv.cv = [ci];
+						pv[cv] = [ci];
 					}
 					return pv;
-				});
+				},{});
 
 				var keys = Object.keys(pro);
 
@@ -112,30 +138,30 @@
 				pre.push(pnts1[i]);
 			}			
 
+			pnts1 = pre.slice(0);
+			pnts2 = pre.slice(0);
+
 			var numRandom = 24 - pre.length;
 
-			var new1 = [];
 			for(var i = 0; i < numRandom; i++){
 				var x,y;
 				do{
 					x = Math.floor((Math.random()*44)+1);
 					y = Math.floor((Math.random()*44)+1);
-				}while(pre.map(val=>{return val.join(",")}).indexOf([x,y].join(","))!==-1);
-				new1.push[x,y];
+				}while(pre.map(val=>{return val.join(",")}).indexOf([x,y].join(","))!==-1||isItInLine(x,y,pnts1));
+				pnts1.push([x,y]);
 			}
 
-			var new2 = [];
 			for(var i = 0; i < numRandom; i++){
 				var x,y;
 				do{
 					x = Math.floor((Math.random()*44)+1);
 					y = Math.floor((Math.random()*44)+1);
-				}while(pre.map(val=>{return val.join(",")}).indexOf([x,y].join(","))!==-1);
-				new2.push[x,y];
+				}while(pre.map(val=>{return val.join(",")}).indexOf([x,y].join(","))!==-1||isItInLine(x,y,pnts2));
+				pnts2.push([x,y]);
 			}
 
-			pnts1 = pre.slice(0).concat(new1);
-			pnts2 = pre.slice(0).concat(new2);
+
 		}
 
 		var getRandomNumberWithNoRepetition = function(cantidad){
@@ -212,7 +238,7 @@
 					keys.forEach(val=>{
 						if(tmp[val].length>3){
 							// Reemplazamos esos numero con otro
-							for(var e=3;e<tmp[val].length;e++){
+							for(var e=4;e<tmp[val].length;e++){
 								// Este es el indice a reemplazar tmp[val][e]
 								points[tmp[val][e]] = null;
 								// Generar un nuevo numero
@@ -264,7 +290,7 @@
 				var keys = Object.keys(tmp);
 
 				keys.forEach(val=>{
-					if(tmp[val]==3){
+					if(tmp[val]==4){
 						numOfLines++;
 					}
 				})
@@ -282,6 +308,9 @@
 			for(var i=0; i < 24; i++){
 				ctx.beginPath();
 				ctx.moveTo(poblacion[id][i][0]*unit,45*unit-poblacion[id][i][1]*unit);
+				//ctx.lineTo(poblacion[id][i+1][0]*unit,45*unit-poblacion[id][i+1][1]*unit);
+				//ctx.stroke();
+				ctx.beginPath();
 		      	ctx.arc(poblacion[id][i][0]*unit,45*unit-poblacion[id][i][1]*unit, 4, 0,2*Math.PI, false);
 		      	ctx.fillStyle = 'green';
 		      	ctx.fill();
@@ -318,7 +347,7 @@
 				}
 			}
 
-			if(mejorEvaluacion>=10){
+			if(mejorEvaluacion>=2){
 				showIndividual(idMejorEvaluado);
 				//evaluateIndividual(poblacion[idMejorEvaluado]);
 				console.log(idMejorEvaluado)
@@ -354,25 +383,24 @@
 			// Mutamos un gen de cada individuo
 			for(var i = 0; i < poblacion.length; i++){
 				var idGentoMutate = Math.floor(Math.random()*24);
-				var exists = false;
 				var newX,newY;
+				poblacion[i][idGentoMutate] = null;
 				do{
 					newX = Math.floor(Math.random()*44)+1;
 					newY = Math.floor(Math.random()*44)+1;
-					exists = false;
-					for(var e = 0; e < poblacion[i].length; e++){
-						if(poblacion[i][0]==[newX,newY]){
-							exist = true;
-						}
+				}while(poblacion[i].map(val=>{
+					if(val){
+						return val.join(",");
+					} else {
+						return "";
 					}
-				}while(exists);
+				}).indexOf([newX,newY].join(","))!==-1||isItInLine(newX,newY,poblacion[i]));
 				poblacion[i][idGentoMutate] = [newX,newY];
-				//console.log(poblacion[i].length);
 			}
-		}while(mejorEvaluacion<10)
+		}while(mejorEvaluacion<2)
 
-		dibujarCuadricula();
-		showIndividual(0);
+		//dibujarCuadricula();
+		showIndividual(idMejorEvaluado);
 
 	</script>
 </body>
