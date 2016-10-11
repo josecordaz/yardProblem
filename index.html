@@ -4,18 +4,19 @@
 	<title>Yard Problem</title>
 	<style type="text/css">
 		canvas {
-			border: 3px solid black;
+			border     : 3px solid black;
 		}
 
 		div {
-			width:100%;
-			text-align:center;
+			width      : 100%;
+			text-align : center;
 		}
 	</style>
+	<!--script src="app.js"></script-->
 </head>
 <body>
 	<div>
-		<canvas id="myCanvas" width="675" height="675"></canvas>
+		<canvas id="myCanvas" width="150" height="150"></canvas>
 	</div>
 	<button onclick="showIndividual(idIndividual)">Show next</button>
 	<label>1</label>
@@ -23,15 +24,17 @@
 		var c = document.getElementById("myCanvas");
 		var ctx = c.getContext("2d");
 		var unit = 15;
+		var numberOfTrees = 24;
+		var numOfRangeField = 10;
 		//c.style.width = (unit * 45)+"px";
 		//c.style.height = (unit * 45)+"px";
-		console.log("The size of canvas should be "+unit*45);
+		console.log("The size of canvas should be "+unit*numOfRangeField);
 
 		var dibujarCuadricula = function(){
 			// Horizontal lines
 			
 			//ctx.strokeStyle = 'orange';
-			for(var i=1; i<45; i++){
+			for(var i=1; i<numOfRangeField; i++){
 				ctx.beginPath();
 				if(i%5===0){
 					ctx.strokeStyle = 'orange';
@@ -40,11 +43,11 @@
 				}
 
 				ctx.moveTo(i*unit,0);
-				ctx.lineTo(i*unit,unit*45);
+				ctx.lineTo(i*unit,unit*numOfRangeField);
 				ctx.stroke();	
 			}
 			// Vertical lines
-			for(var i=1; i<45; i++){
+			for(var i=1; i<numOfRangeField; i++){
 				ctx.beginPath();
 				if(i%5===0){
 					ctx.strokeStyle = 'orange';
@@ -53,34 +56,50 @@
 				}
 
 				ctx.moveTo(0,i*unit);
-				ctx.lineTo(45*unit,i*unit);
+				ctx.lineTo(numOfRangeField*unit,i*unit);
 				ctx.stroke();	
 			}	
 		}
 
 		var isItInLine = function(x,y,pnts){
-
+			console.log("UNo"+pnts.length);
 			var inclinaciones = [];
 			for(var i = 0; i < pnts.length; i++){
 				inclinaciones[i] = [];
-				for(var e = 0; e < pnts.length; e++){
-					if(e !== i && pnts[i] && pnts[e]){
+				for(var e = i+1; e < pnts.length; e++){
+					if(pnts[i] && pnts[e]){
 						inclinaciones[i][e] = (pnts[i][0]-pnts[e][0])/(pnts[i][1]-pnts[e][1]);
 					}
 				}
 			}
-
+			console.log("dos");
 			var inLine = false;
 			for(var i = 0; i < inclinaciones.length; i++){
+				console.log("tres");
 				if(pnts[i]){
 					var pivote = (x-pnts[i][0])/(y-pnts[i][1]);
-					for(var e=0; e < inclinaciones[i].length; e++){
-						if(inclinaciones[i][e]==pivote){
+					console.log("cuatro");
+					var pre = inclinaciones[i].reduce((pv,cv,ci)=>{
+						if(pv[cv]){
+							pv[cv] ++;
+						} else {
+							pv[cv] = 1;
+						}
+						return pv;
+					},{});
+
+					var keys = Object.keys(pre);
+
+					keys.forEach(key=>{
+						console.log("cinco");
+						if((pre[key]===3&&key==pivote)||(((pivote+"").indexOf("Infinity",0)!==-1)&&(Math.abs(key)===Math.abs(pivote)))){
 							inLine = true;
 						}
-					}
+					});
+					console.log("seis");
 				}
 			}
+			console.log("siete");
 			return inLine;
 		}
 
@@ -89,10 +108,8 @@
 			var inclinaciones = [];
 			for(var i = 0; i < pnts.length; i++){
 				inclinaciones[i] = [];
-				for(var e = 0; e < pnts.length; e++){
-					if(e !== i){
-						inclinaciones[i][e] = (pnts[i][0]-pnts[e][0])/(pnts[i][1]-pnts[e][1]);
-					}
+				for(var e = i+1; e < pnts.length; e++){
+					inclinaciones[i][e] = (pnts[i][0]-pnts[e][0])/(pnts[i][1]-pnts[e][1]);
 				}
 			}
 
@@ -109,7 +126,7 @@
 				var keys = Object.keys(pro);
 
 				keys.forEach(key=>{
-					if(pro[key].length==4){
+					if(pro[key].length==3){
 						if(res.indexOf(i)!==-1){
 							res.push(i);
 						}
@@ -141,23 +158,23 @@
 			pnts1 = pre.slice(0);
 			pnts2 = pre.slice(0);
 
-			var numRandom = 24 - pre.length;
+			var numRandom = numberOfTrees - pre.length;
 
 			for(var i = 0; i < numRandom; i++){
 				var x,y;
 				do{
-					x = Math.floor((Math.random()*44)+1);
-					y = Math.floor((Math.random()*44)+1);
-				}while(pre.map(val=>{return val.join(",")}).indexOf([x,y].join(","))!==-1||isItInLine(x,y,pnts1));
+					x = Math.floor((Math.random()*(numOfRangeField-1))+1);
+					y = Math.floor((Math.random()*(numOfRangeField-1))+1);
+				}while(pnts1.map(val=>{return val.join(",")}).indexOf([x,y].join(","))!==-1||isItInLine(x,y,pnts1));
 				pnts1.push([x,y]);
 			}
 
 			for(var i = 0; i < numRandom; i++){
 				var x,y;
 				do{
-					x = Math.floor((Math.random()*44)+1);
-					y = Math.floor((Math.random()*44)+1);
-				}while(pre.map(val=>{return val.join(",")}).indexOf([x,y].join(","))!==-1||isItInLine(x,y,pnts2));
+					x = Math.floor((Math.random()*(numOfRangeField-1))+1);
+					y = Math.floor((Math.random()*(numOfRangeField-1))+1);
+				}while(pnts2.map(val=>{return val.join(",")}).indexOf([x,y].join(","))!==-1||isItInLine(x,y,pnts2));
 				pnts2.push([x,y]);
 			}
 
@@ -180,85 +197,16 @@
 			// Points array
 			var points = [];
 
-			var tmpNum ;
-			// Getting random x numbers
-			for(var i=0; i<24; i++){
-				tmpNum = Math.floor((Math.random()*44)+1);
-				points[i] = [tmpNum,0];
+			for(var i = 0; i < numberOfTrees; i++){
+				var x;
+				var y;
+				do {
+					x = Math.floor((Math.random()*(numOfRangeField-1))+1);
+					y = Math.floor((Math.random()*(numOfRangeField-1))+1);
+				}while(points.map(val=>{return val.join(",");}).indexOf([x,y].join(","))!==-1||isItInLine(x,y,points));
+				console.log(x+","+y);
+				points[i] =[x,y];
 			}
-
-			// Getting random y numbers
-			for(var i=0; i<24; i++){
-				
-				tmpNum = Math.floor((Math.random()*44)+1);
-				var exists;
-				do{
-					exists = false;
-					for(var e = 0; e < i; e++){
-						if(points[i].join("&")==[points[i][0],tmpNum].join("&")){
-							exists = true;
-						}
-					}
-				} while (exists)
-				
-
-				points[i][1] = tmpNum;
-			}
-
-			// Aqui se va a quitar los elementos que sean mayor a 4 en una misma linea
-			var inclinaciones = [];
-			var numOfLines = 0;
-
-			var entro = true;
-
-			while(entro){
-				entro = false;
-			
-				for (var i = 0; i < points.length; i++) {
-					inclinaciones[i] = [];
-					for (var e = i+1 ; e < points.length; e++) {
-						if(i!==e){
-							inclinaciones[i][e] = (points[i][0]-points[e][0])/(points[i][1]-points[e][1]);	
-						}
-					}	
-				}
-				
-				for(var i = 0; i < inclinaciones.length; i++){
-					var tmp = inclinaciones[i].reduce((pv,cv,ci)=>{
-						if(pv[cv]){
-							pv[cv].push(ci);
-						} else {
-							pv[cv] = [ci];
-						}
-						return pv;
-					},{});
-
-					var keys = Object.keys(tmp);
-				
-					keys.forEach(val=>{
-						if(tmp[val].length>3){
-							// Reemplazamos esos numero con otro
-							for(var e=4;e<tmp[val].length;e++){
-								// Este es el indice a reemplazar tmp[val][e]
-								points[tmp[val][e]] = null;
-								// Generar un nuevo numero
-								var newX,newY;
-								do{
-									newX = Math.floor(Math.random()*44)+1;
-									newY = Math.floor(Math.random()*44)+1;
-									if(points.join(",").indexOf([newX,newY].join(","))!==-1){
-										this.entro = true;	
-									}
-								}while(points.join(",").indexOf([newX,newY].join(","))!==-1)
-								// Revisar que no existan duplicados
-								// Reemplazar el viejo por el nuevo numero
-								points[tmp[val][e]] = [newX,newY].slice(0);
-							}
-						}
-					});	
-				}
-			}
-
 
 			return points;
 		}
@@ -271,11 +219,10 @@
 			for (var i = 0; i < pnts.length; i++) {
 				inclinaciones[i] = [];
 				for (var e = i+1 ; e < pnts.length; e++) {
-					inclinaciones[i][e] = (pnts[i][0]-pnts[e][0])/(pnts[i][1]-pnts[e][1]);
+					inclinaciones[i][e] = (pnts[i][0]-pnts[e][0])/(pnts[i][1]-pnts[e][1]);	
 				}	
 				
 			}
-
 
 			for(var i = 0; i < inclinaciones.length; i++){
 				var tmp = inclinaciones[i].reduce((pv,cv,ci)=>{
@@ -290,7 +237,7 @@
 				var keys = Object.keys(tmp);
 
 				keys.forEach(val=>{
-					if(tmp[val]==4){
+					if(tmp[val]==3){
 						numOfLines++;
 					}
 				})
@@ -305,13 +252,13 @@
 			document.getElementsByTagName("label")[0].innerHTML = id;
 			ctx.clearRect(0, 0, c.width, c.height);
 			dibujarCuadricula();
-			for(var i=0; i < 24; i++){
+			for(var i=0; i < numberOfTrees; i++){
 				ctx.beginPath();
-				ctx.moveTo(poblacion[id][i][0]*unit,45*unit-poblacion[id][i][1]*unit);
+				ctx.moveTo(poblacion[id][i][0]*unit,numOfRangeField*unit-poblacion[id][i][1]*unit);
 				//ctx.lineTo(poblacion[id][i+1][0]*unit,45*unit-poblacion[id][i+1][1]*unit);
 				//ctx.stroke();
 				ctx.beginPath();
-		      	ctx.arc(poblacion[id][i][0]*unit,45*unit-poblacion[id][i][1]*unit, 4, 0,2*Math.PI, false);
+		      	ctx.arc(poblacion[id][i][0]*unit,numOfRangeField*unit-poblacion[id][i][1]*unit, 4, 0,2*Math.PI, false);
 		      	ctx.fillStyle = 'green';
 		      	ctx.fill();
 		      	ctx.lineWidth = 0;
@@ -327,15 +274,18 @@
 		// Iniciamos a los individuos de la primer generacion
 		var poblacion = [];
 		var numOfIndividualPerGeneration = 8;
+		console.log("Generando primera poblacion...");
 		for(var i = 0; i < numOfIndividualPerGeneration; i++){
 			poblacion [i] = createRandomIndividual();
+			console.log(poblacion[i].join(";"));
 		}
 
 		var mejorEvaluacion = -1;	
 		var idMejorEvaluado = -1;
 
-		do{
+		//do{
 			// Evaluamos a los individuos
+			console.log("Evaluando...");
 			var evaluaciones = [];
 			for(var i = 0; i < numOfIndividualPerGeneration; i++){
 				evaluaciones[i] = evaluateIndividual(poblacion[i]);
@@ -344,26 +294,29 @@
 					idMejorEvaluado = i;
 					console.log("mejorEvaluacion => "+mejorEvaluacion);
 					console.log("ID mejorEval => "+idMejorEvaluado);
+					//showIndividual(idMejorEvaluado);
 				}
 			}
 
-			if(mejorEvaluacion>=2){
+			if(mejorEvaluacion>=10){
 				showIndividual(idMejorEvaluado);
 				//evaluateIndividual(poblacion[idMejorEvaluado]);
 				console.log(idMejorEvaluado)
 				document.getElementsByTagName("label")[0].innerHTML = idMejorEvaluado;
-				break;
+				//break;
 			}
-
+			//console.log("competidores...");
 			// Seleccionamos a los competidores del torneo
 			var battleOrder = getRandomNumberWithNoRepetition(numOfIndividualPerGeneration);
 
 			// Ganadores
+			//console.log("Ganadores...");
 			var winners = [];
 			for(var i = 0; i < battleOrder.length/2; i++){
 				winners[i] = evaluaciones[battleOrder[i*2]]>evaluaciones[battleOrder[i*2+1]]?battleOrder[i*2]:battleOrder[i*2+1];
 			}
 			
+			//console.log("Clonando...");
 			// Clonamos ganadores
 			var clonados = [];
 			for (var i = 0; i < winners.length; i++) {
@@ -371,23 +324,25 @@
 				clonados[i*2+1] = winners[i];
 			}
 
+			//console.log("Parejas a cruzar...");
 			// Seleccionamos parejas a cruzar
 			var ordenCruza = getRandomNumberWithNoRepetition(numOfIndividualPerGeneration);
 
+			//console.log("Indices para cruzas...");
 			// Se cruzan los individuos
 			for(var i = 0; i < numOfIndividualPerGeneration; i+=2){
-				cruzar(poblacion[ordenCruza[i]],poblacion[ordenCruza[i+1]]);
+				cruzar(poblacion[clonados[ordenCruza[i]]],poblacion[clonados[ordenCruza[i+1]]]);
 			}
 			//break;
-
+			//console.log(poblacion[0].join(";"));
 			// Mutamos un gen de cada individuo
 			for(var i = 0; i < poblacion.length; i++){
-				var idGentoMutate = Math.floor(Math.random()*24);
+				var idGentoMutate = Math.floor(Math.random()*numberOfTrees);
 				var newX,newY;
 				poblacion[i][idGentoMutate] = null;
 				do{
-					newX = Math.floor(Math.random()*44)+1;
-					newY = Math.floor(Math.random()*44)+1;
+					newX = Math.floor(Math.random()*(numOfRangeField-1))+1;
+					newY = Math.floor(Math.random()*(numOfRangeField-1))+1;
 				}while(poblacion[i].map(val=>{
 					if(val){
 						return val.join(",");
@@ -397,10 +352,13 @@
 				}).indexOf([newX,newY].join(","))!==-1||isItInLine(newX,newY,poblacion[i]));
 				poblacion[i][idGentoMutate] = [newX,newY];
 			}
-		}while(mejorEvaluacion<2)
+			//console.log(poblacion[0].join(";"));
+			//console.log("");
+			//break;
+		//}while(mejorEvaluacion<10)
 
 		//dibujarCuadricula();
-		showIndividual(idMejorEvaluado);
+		//showIndividual(idMejorEvaluado);
 
 	</script>
 </body>
