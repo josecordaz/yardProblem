@@ -16,7 +16,7 @@
 </head>
 <body>
 	<div>
-		<canvas id="myCanvas" width="150" height="150"></canvas>
+		<canvas id="myCanvas" width="195" height="195"></canvas>
 	</div>
 	<button onclick="showIndividual(idIndividual)">Show next</button>
 	<label>1</label>
@@ -25,7 +25,7 @@
 		var ctx = c.getContext("2d");
 		var unit = 15;
 		var numberOfTrees = 24;
-		var numOfRangeField = 10;
+		var numOfRangeField = 13;
 		//c.style.width = (unit * 45)+"px";
 		//c.style.height = (unit * 45)+"px";
 		console.log("The size of canvas should be "+unit*numOfRangeField);
@@ -62,7 +62,6 @@
 		}
 
 		var isItInLine = function(x,y,pnts){
-			console.log("UNo"+pnts.length);
 			var inclinaciones = [];
 			for(var i = 0; i < pnts.length; i++){
 				inclinaciones[i] = [];
@@ -72,13 +71,10 @@
 					}
 				}
 			}
-			console.log("dos");
 			var inLine = false;
 			for(var i = 0; i < inclinaciones.length; i++){
-				console.log("tres");
 				if(pnts[i]){
 					var pivote = (x-pnts[i][0])/(y-pnts[i][1]);
-					console.log("cuatro");
 					var pre = inclinaciones[i].reduce((pv,cv,ci)=>{
 						if(pv[cv]){
 							pv[cv] ++;
@@ -88,18 +84,18 @@
 						return pv;
 					},{});
 
+					//console.log(pre);
+
 					var keys = Object.keys(pre);
 
 					keys.forEach(key=>{
-						console.log("cinco");
 						if((pre[key]===3&&key==pivote)||(((pivote+"").indexOf("Infinity",0)!==-1)&&(Math.abs(key)===Math.abs(pivote)))){
 							inLine = true;
 						}
 					});
-					console.log("seis");
 				}
 			}
-			console.log("siete");
+			//console.log("");
 			return inLine;
 		}
 
@@ -204,7 +200,7 @@
 					x = Math.floor((Math.random()*(numOfRangeField-1))+1);
 					y = Math.floor((Math.random()*(numOfRangeField-1))+1);
 				}while(points.map(val=>{return val.join(",");}).indexOf([x,y].join(","))!==-1||isItInLine(x,y,points));
-				console.log(x+","+y);
+				//console.log(x+","+y);
 				points[i] =[x,y];
 			}
 
@@ -277,13 +273,12 @@
 		console.log("Generando primera poblacion...");
 		for(var i = 0; i < numOfIndividualPerGeneration; i++){
 			poblacion [i] = createRandomIndividual();
-			console.log(poblacion[i].join(";"));
 		}
 
 		var mejorEvaluacion = -1;	
 		var idMejorEvaluado = -1;
 
-		//do{
+		do{
 			// Evaluamos a los individuos
 			console.log("Evaluando...");
 			var evaluaciones = [];
@@ -298,12 +293,14 @@
 				}
 			}
 
-			if(mejorEvaluacion>=10){
+			if(mejorEvaluacion>=28){
 				showIndividual(idMejorEvaluado);
+				console.log(generacion[idMejorEvaluado].join(";"));
+				idIndividual = idMejorEvaluado;
 				//evaluateIndividual(poblacion[idMejorEvaluado]);
 				console.log(idMejorEvaluado)
 				document.getElementsByTagName("label")[0].innerHTML = idMejorEvaluado;
-				//break;
+				break;
 			}
 			//console.log("competidores...");
 			// Seleccionamos a los competidores del torneo
@@ -350,12 +347,12 @@
 						return "";
 					}
 				}).indexOf([newX,newY].join(","))!==-1||isItInLine(newX,newY,poblacion[i]));
-				poblacion[i][idGentoMutate] = [newX,newY];
+				poblacion[i][idGentoMutate] = [newX,newY].slice(0);
 			}
 			//console.log(poblacion[0].join(";"));
 			//console.log("");
 			//break;
-		//}while(mejorEvaluacion<10)
+		}while(mejorEvaluacion<28)
 
 		//dibujarCuadricula();
 		//showIndividual(idMejorEvaluado);
